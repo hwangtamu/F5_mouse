@@ -53,6 +53,8 @@ CF2mouseDlg::CF2mouseDlg(CWnd* pParent /*=NULL*/)
 	, m_time(0)
 	, m_oldpoint(0)
 	, m_candiNo(0)
+	, m_candipageno(0)
+	, m_candipageindex(0)
 	, m_tpos(0,0)
 	, m_word(_T(""))
 	, m_sentence(_T(""))
@@ -193,15 +195,8 @@ HCURSOR CF2mouseDlg::OnQueryDragIcon()
 
 void CF2mouseDlg::OnBnClickedPostest1()
 {
-	// TODO: Add your control notification handler code here
-	//UpdateData();
-	/*
-	GetDlgItem(IDC_POSTEST1)->GetWindowRect(&m_tcontrol);
-	m_tpos=m_tcontrol.CenterPoint();
-	m_tposX=m_tpos.x;
-	m_tposY=m_tpos.y;
-	UpdateData(FALSE);*/
-	MessageBox(_T("按下鼠标拖动模拟键盘输入，如果到键盘区以外就会终止，键盘区域信息和轨迹信息参见exe同目录下的txt文件"));
+
+	MessageBox(_T("Made By Xiang Chen & Han Wang\n\r All right reserved\n\rHave Fun!"));
 }
 
 void CF2mouseDlg::OnBnClickedPostest2()
@@ -258,7 +253,7 @@ void CF2mouseDlg::OnMouseMove(UINT nFlags, CPoint point)
 			  if(m_keys[i].inKey(point)&&m_lockkey==FALSE)
 			  {
 				  pdc->FillSolidRect(m_keys[i].location.x,m_keys[i].location.y, m_keys[i].size,m_keys[i].size,cf);
-				  pdc->TextOut(m_keys[i].location.x+5,m_keys[i].location.y+5,m_keys[i].letter);
+				  pdc->TextOut(m_keys[i].location.x,m_keys[i].location.y,m_keys[i].letter);
 				  if(m_shift||m_capsLock)
 				  {
 				        m_word=m_word+m_keys[i].sletter;
@@ -322,7 +317,13 @@ void CF2mouseDlg::OnLButtonDown(UINT nFlags, CPoint point)
 				  }
 				  else
 				  {
-					  m_sentence=m_sentence+m_auxikeys[i].letter;
+					   if(m_sentence.GetLength()>0)
+					   {
+						   m_sentence=m_sentence.Left(m_sentence.GetLength()-1);	
+						   m_sentence=m_sentence+m_auxikeys[i].letter+CString(" ");
+					   }		   
+					   else
+						   m_sentence=m_sentence+m_auxikeys[i].letter+CString(" ");
 				  }
 				  break;
 			  }
@@ -401,12 +402,24 @@ void CF2mouseDlg::OnLButtonDown(UINT nFlags, CPoint point)
 				       pdc->TextOut(m_lamdakeys[i].location.x,m_lamdakeys[i].location.y,m_lamdakeys[i].letter);
 				   if(m_shift||m_capsLock)
 				   {
-					   	 m_sentence=m_sentence+m_lamdakeys[i].sletter;
-						 m_shift=FALSE;
+					   if(m_sentence.GetLength()>0)
+					   {
+						   m_sentence=m_sentence.Left(m_sentence.GetLength()-1);	
+						   m_sentence=m_sentence+m_lamdakeys[i].sletter;
+					   }		   
+					   else
+						   m_sentence=m_sentence+m_lamdakeys[i].sletter;
+					   m_shift=FALSE;
 				   }			        
 				   else
 				   {
-					     m_sentence=m_sentence+m_lamdakeys[i].letter;
+					   if(m_sentence.GetLength()>0)
+					   {
+						   m_sentence=m_sentence.Left(m_sentence.GetLength()-1);	
+						   m_sentence=m_sentence+m_lamdakeys[i].letter+CString(" ");
+					   }		   
+					   else
+						   m_sentence=m_sentence+m_lamdakeys[i].letter+CString(" ");
 				   }
 				   break;
 			}
@@ -426,6 +439,8 @@ void CF2mouseDlg::OnLButtonDown(UINT nFlags, CPoint point)
 		}
 		else
 		{
+			m_candipageno=0;
+			m_candipageindex=0;
 		    for(int i=0;i<CANDIKEY_NO;i++) 
             {
 			    if(m_candikeys[i].inKey(point))
@@ -467,7 +482,6 @@ void CF2mouseDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	     //calculating csc logical words
 		 if(m_word.GetLength()>0)
      	 {
-			  //q_Result *qResult=new q_Result;
 	          string st_word;
 			  CString nstr;
 	          char *writeword=new char[m_word.GetLength()+1];
@@ -477,6 +491,7 @@ void CF2mouseDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	          st_word=writeword;
 	          m_wQ->getQResult(st_word,m_qResult);
 			  m_candiNo=m_qResult.size();
+			  m_candipageno=m_candiNo/8+1;
 			  nstr.Format(_T("%d"),m_candiNo);
 			  SetDlgItemText(IDC_Candino,nstr);
 			  UpdateData(FALSE);
@@ -535,11 +550,13 @@ void CF2mouseDlg::OnLButtonUp(UINT nFlags, CPoint point)
 		}
 		if(m_candiPageflag)
 		{
-			 //m_candiNo;			 
+			 //m_candiNo
+			 if(m_candipageindex<m_candipageno)
+			    m_candipageindex++;
 			 for(int i=0;i<CANDIKEY_NO;i++)
 	         {
-				 if(i+CANDIKEY_NO<m_qResult.size())
-					 m_candiword[i]=CString(m_qResult.at(i+CANDIKEY_NO).word.c_str())+CString(" ");
+				 if(i+m_candipageindex*CANDIKEY_NO<m_qResult.size())
+					 m_candiword[i]=CString(m_qResult.at(i+m_candipageindex*CANDIKEY_NO).word.c_str())+CString(" ");
 				 else
 		             m_candiword[i]=CString("");
 	         }
@@ -549,6 +566,18 @@ void CF2mouseDlg::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	ReleaseDC(pdc);
 	CDialogEx::OnLButtonUp(nFlags, point);
+
+	//core function about algorithms	
+	char const filename[]="candiwords.txt";
+    ofstream o_file;
+    o_file.open(filename);
+	o_file<<"candidate word list:"<<endl;
+	o_file<<"word"<<"	"<<"frequency"<<endl;
+    for(int i=0;i<m_candiNo;i++)
+    {
+		o_file<<m_qResult.at(i).word<<"     "<<m_qResult.at(i).freq<<endl;
+    }
+    o_file.close();
 
 	//core function about algorithms
 	/*
@@ -810,6 +839,4 @@ bool Key::inKey(CPoint mp)
 	else
 	    return FALSE;
 }
-
-
 //second part word query

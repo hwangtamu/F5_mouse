@@ -50,9 +50,10 @@ void wordQuery::refineInput()
 	if(input.at(0)>='A'&&input.at(0)<='Z')
 	{
 		cap_flag=1;
-		if(input.at(1)>='A'&&input.at(1)<='Z')
+		if(input.size()>1)
 		{
-			cap_flag=2;
+			if(input.at(1)>='A'&&input.at(1)<='Z')
+			    cap_flag=2;
 		}
 	}
 	if(cap_flag==1)
@@ -167,26 +168,30 @@ void wordQuery::getQResult(string &in,q_Result& qResult)
 	ihead=input.at(0)-'a';
 	irear=input.at(input.length()-1)-'a';
 	qwordlength=input.length();
+	dataUnit temp;
 
 	//search in corresponding speed-up block
-	for(int i=0;i<wddb[ihead][irear].size();i++)
+	int i;
+	for(i=0;i<wddb[ihead][irear].size();i++)
 	{
-		if(wddb[ihead][irear].at(i).word.length()<=qwordlength&&isContainedWord(input,wddb[ihead][irear].at(i).word))
+		temp=wddb[ihead][irear].at(i);
+		if(temp.word.length()<=qwordlength&&isContainedWord(input,temp.word))
 		{
 			//restoration
 			if(cap_flag==1)
-				wddb[ihead][irear].at(i).word.at(0)-=32;
+				temp.word.at(0)-=32;
 			if(cap_flag==2)
 			{
-				for(int j=0;j<wddb[ihead][irear].at(i).word.size();j++)
-					wddb[ihead][irear].at(i).word.at(j)-=32;
+				for(int j=0;j<temp.word.length();j++)
+					temp.word.at(j)-=32;
 			}
-			qResult.push_back(wddb[ihead][irear].at(i));
+			qResult.push_back(temp);
 		}
 	}
 	//check results
+	/*
 	for(int i=0;i<qResult.size();i++)
 	{
 		cout<<qResult.at(i).word<<"	"<<qResult.at(i).freq<<endl;
-	}
+	}*/
 }

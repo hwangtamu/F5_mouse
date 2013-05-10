@@ -123,6 +123,8 @@ public:
 	//part2 CSC solution
     wordQuery *m_wQ;
 	q_Result   m_qResult;
+	int m_candipageno;
+	int m_candipageindex;
 	//destruction
 	~CF2mouseDlg();
 
